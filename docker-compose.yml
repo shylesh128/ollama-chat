@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  ollama:
+    container_name: ollama
+    image: ollama/ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: ["gpu"]
+              count: all
+    volumes:
+      - ollama:/root/.ollama
+    restart: always
+
+  app:
+    build:
+      context: .
+    container_name: ollama-rest
+    environment:
+      - OLLAMA_HOST=${OLLAMA_HOST}
+      - PORT=${PORT}
+      - NODE_ENV=${NODE_ENV}
+    ports:
+      - "${PORT}:${PORT}"
+    depends_on:
+      - ollama
+    command: >
+      sh -c "if [ \"$NODE_ENV\" = 'development' ]; then pnpm run dev; else pnpm start; fi"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    profiles: ["dev"]
+
+volumes:
+  ollama:

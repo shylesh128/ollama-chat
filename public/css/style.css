@@ -1,0 +1,190 @@
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Auto-resize textarea */
+#message-input {
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+/* Message styling */
+.user-message {
+  background-color: #e6f2ff;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-left: 2rem;
+  margin-right: 0;
+  position: relative;
+}
+
+.assistant-message {
+  background-color: #f8f9fa;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-left: 0;
+  margin-right: 2rem;
+  position: relative;
+}
+
+.user-avatar,
+.assistant-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  position: absolute;
+  top: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+}
+
+.user-avatar {
+  left: -40px;
+  background-color: #3b82f6;
+}
+
+.assistant-avatar {
+  right: -40px;
+  background-color: #10b981;
+}
+
+/* Markdown styling */
+.message-content pre {
+  background-color: #282c34;
+  color: #abb2bf;
+  padding: 1rem;
+  border-radius: 0.375rem;
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+.message-content code {
+  font-family: "Courier New", monospace;
+  padding: 0.2rem 0.4rem;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 0.25rem;
+}
+
+.message-content pre code {
+  background-color: transparent;
+  padding: 0;
+}
+
+.message-content p {
+  margin-bottom: 1rem;
+}
+
+.message-content ul,
+.message-content ol {
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.message-content ul {
+  list-style-type: disc;
+}
+
+.message-content ol {
+  list-style-type: decimal;
+}
+
+/* Conversation list item styling */
+.conversation-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.conversation-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.conversation-item.active {
+  background-color: rgba(59, 130, 246, 0.5);
+}
+
+/* Mobile sidebar toggle */
+@media (max-width: 1024px) {
+  #sidebar {
+    position: fixed;
+    left: -100%;
+    z-index: 50;
+    height: 100%;
+  }
+
+  #sidebar.show {
+    left: 0;
+  }
+}
+
+/* Loading animation */
+.loading-dots {
+  display: inline-flex;
+}
+
+.loading-dots span {
+  width: 6px;
+  height: 6px;
+  margin: 0 2px;
+  background-color: #888;
+  border-radius: 50%;
+  animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.loading-dots span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.loading-dots span:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes bounce {
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+/* Context indicator */
+.context-indicator {
+  display: inline-block;
+  margin-top: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  background-color: #eef2ff;
+  color: #4f46e5;
+  border: 1px solid #e0e7ff;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  position: relative;
+}
+
+.context-indicator::before {
+  content: "📚";
+  margin-right: 0.25rem;
+}

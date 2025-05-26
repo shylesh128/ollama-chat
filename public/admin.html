@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ollama Chat Admin</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      .document-card {
+        transition: all 0.3s ease;
+      }
+      .document-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+          0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      }
+      #upload-area.drag-over {
+        background-color: rgba(59, 130, 246, 0.1);
+        border-color: #3b82f6;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-100 min-h-screen">
+    <!-- Navigation Bar -->
+    <nav class="bg-gray-800 text-white p-4">
+      <div class="container mx-auto flex justify-between items-center">
+        <div class="flex items-center space-x-4">
+          <h1 class="text-xl font-bold">Ollama Chat Admin</h1>
+        </div>
+        <div>
+          <a href="/" class="px-4 py-2 rounded hover:bg-gray-700">
+            <i class="fas fa-comment mr-2"></i> Go to Chat
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto py-8 px-4">
+      <div class="mb-8">
+        <h2 class="text-2xl font-bold mb-4">Document Management</h2>
+        <p class="text-gray-600 mb-4">
+          Upload PDF documents to provide context for the Ollama chatbot. The
+          chatbot will use these documents to answer user queries.
+        </p>
+      </div>
+
+      <!-- Upload Area -->
+      <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h3 class="text-xl font-bold mb-4">Upload New Document</h3>
+        <div
+          id="upload-area"
+          class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer"
+        >
+          <div class="mb-4">
+            <i class="fas fa-file-pdf text-4xl text-gray-400"></i>
+          </div>
+          <p class="text-gray-500 mb-2">
+            Drag & drop PDF file here or click to browse
+          </p>
+          <p class="text-gray-400 text-sm">Maximum file size: 10MB</p>
+          <input
+            type="file"
+            id="file-input"
+            class="hidden"
+            accept="application/pdf"
+          />
+        </div>
+        <div class="mt-4">
+          <div class="mb-4">
+            <label for="title" class="block text-gray-700 font-bold mb-2"
+              >Document Title</label
+            >
+            <input
+              type="text"
+              id="title"
+              class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter document title"
+            />
+          </div>
+          <button
+            id="upload-btn"
+            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled
+          >
+            <i class="fas fa-upload mr-2"></i> Upload Document
+          </button>
+        </div>
+      </div>
+
+      <!-- Documents List -->
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-bold">Uploaded Documents</h3>
+          <button
+            id="reprocess-btn"
+            class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded"
+          >
+            <i class="fas fa-sync-alt mr-2"></i> Reprocess Embeddings
+          </button>
+        </div>
+        <div
+          id="documents-container"
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+        >
+          <!-- Documents will be populated here dynamically -->
+          <div
+            class="text-center text-gray-500 py-8 col-span-full hidden"
+            id="no-documents"
+          >
+            <i class="fas fa-folder-open text-4xl mb-2"></i>
+            <p>No documents uploaded yet</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div
+      id="loading-overlay"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden"
+    >
+      <div class="bg-white p-6 rounded-lg shadow-lg">
+        <div class="flex items-center space-x-4">
+          <div
+            class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"
+          ></div>
+          <p class="text-lg" id="loading-text">Processing document...</p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // DOM Elements
+      const uploadArea = document.getElementById("upload-area");
+      const fileInput = document.getElementById("file-input");
+      const titleInput = document.getElementById("title");
+      const uploadBtn = document.getElementById("upload-btn");
+      const documentsContainer = document.getElementById("documents-container");
+      const noDocuments = document.getElementById("no-documents");
+      const loadingOverlay = document.getElementById("loading-overlay");
+      const loadingText = document.getElementById("loading-text");
+      const reprocessBtn = document.getElementById("reprocess-btn");
+
+      // State
+      let selectedFile = null;
+
+      // Functions
+      async function fetchDocuments() {
+        try {
+          const response = await fetch("/api/documents");
+          const data = await response.json();
+          renderDocuments(data.documents || []);
+        } catch (error) {
+          console.error("Error fetching documents:", error);
+          showToast("Failed to load documents", "error");
+        }
+      }
+
+      function renderDocuments(documents) {
+        // Clear container except for the "no documents" message
+        const elements = documentsContainer.querySelectorAll(".document-card");
+        elements.forEach((el) => el.remove());
+
+        if (documents.length === 0) {
+          noDocuments.classList.remove("hidden");
+          return;
+        }
+
+        noDocuments.classList.add("hidden");
+
+        documents.forEach((doc) => {
+          const card = document.createElement("div");
+          card.className =
+            "document-card bg-white border border-gray-200 rounded-lg shadow-sm p-4 flex flex-col";
+
+          const date = new Date(doc.createdAt).toLocaleDateString();
+          const pageCount = doc.metadata?.pageCount || "N/A";
+
+          card.innerHTML = `
+          <div class="flex items-start justify-between mb-2">
+            <div class="flex items-center">
+              <i class="fas fa-file-pdf text-red-500 text-xl mr-2"></i>
+              <h4 class="font-bold text-lg truncate" title="${doc.title}">${doc.title}</h4>
+            </div>
+            <button class="delete-document text-gray-400 hover:text-red-500" data-id="${doc._id}">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+          <div class="text-gray-500 text-sm mb-2">
+            <p>Uploaded: ${date}</p>
+            <p>Pages: ${pageCount}</p>
+          </div>
+        `;
+
+          documentsContainer.appendChild(card);
+
+          // Add event listener for delete button
+          const deleteBtn = card.querySelector(".delete-document");
+          deleteBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            deleteDocument(doc._id);
+          });
+        });
+      }
+
+      async function uploadDocument() {
+        if (!selectedFile || !titleInput.value.trim()) {
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+        formData.append("title", titleInput.value.trim());
+
+        loadingOverlay.classList.remove("hidden");
+        loadingText.textContent = "Processing document...";
+
+        try {
+          const response = await fetch("/api/documents", {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Failed to upload document");
+          }
+
+          // Reset form
+          selectedFile = null;
+          fileInput.value = "";
+          titleInput.value = "";
+          uploadBtn.disabled = true;
+
+          // Refresh documents list
+          await fetchDocuments();
+          showToast("Document uploaded successfully", "success");
+        } catch (error) {
+          console.error("Error uploading document:", error);
+          showToast(error.message || "Failed to upload document", "error");
+        } finally {
+          loadingOverlay.classList.add("hidden");
+        }
+      }
+
+      async function deleteDocument(id) {
+        if (!confirm("Are you sure you want to delete this document?")) {
+          return;
+        }
+
+        loadingOverlay.classList.remove("hidden");
+        loadingText.textContent = "Deleting document...";
+
+        try {
+          const response = await fetch(`/api/documents/${id}`, {
+            method: "DELETE",
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Failed to delete document");
+          }
+
+          // Refresh documents list
+          await fetchDocuments();
+          showToast("Document deleted successfully", "success");
+        } catch (error) {
+          console.error("Error deleting document:", error);
+          showToast(error.message || "Failed to delete document", "error");
+        } finally {
+          loadingOverlay.classList.add("hidden");
+        }
+      }
+
+      function showToast(message, type = "info") {
+        // Simple toast implementation
+        const toast = document.createElement("div");
+        toast.className = `fixed bottom-4 right-4 px-4 py-2 rounded-lg shadow-lg text-white ${
+          type === "error" ? "bg-red-500" : "bg-green-500"
+        }`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+          toast.remove();
+        }, 3000);
+      }
+
+      // Event Listeners
+      uploadArea.addEventListener("click", () => {
+        fileInput.click();
+      });
+
+      fileInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (file && file.type === "application/pdf") {
+          selectedFile = file;
+          uploadBtn.disabled = !titleInput.value.trim();
+        } else {
+          showToast("Please select a valid PDF file", "error");
+        }
+      });
+
+      titleInput.addEventListener("input", () => {
+        uploadBtn.disabled = !selectedFile || !titleInput.value.trim();
+      });
+
+      uploadBtn.addEventListener("click", uploadDocument);
+
+      // Drag and drop functionality
+      uploadArea.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        uploadArea.classList.add("drag-over");
+      });
+
+      uploadArea.addEventListener("dragleave", () => {
+        uploadArea.classList.remove("drag-over");
+      });
+
+      uploadArea.addEventListener("drop", (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove("drag-over");
+
+        const file = e.dataTransfer.files[0];
+        if (file && file.type === "application/pdf") {
+          selectedFile = file;
+          fileInput.files = e.dataTransfer.files;
+          uploadBtn.disabled = !titleInput.value.trim();
+        } else {
+          showToast("Please drop a valid PDF file", "error");
+        }
+      });
+
+      reprocessBtn.addEventListener("click", async () => {
+        if (
+          !confirm(
+            "This will regenerate all document embeddings with improved accuracy. It may take some time for large documents. Continue?"
+          )
+        ) {
+          return;
+        }
+
+        loadingOverlay.classList.remove("hidden");
+        loadingText.textContent = "Reprocessing documents...";
+
+        try {
+          const response = await fetch("/api/admin/reprocess-documents", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({}),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(
+              errorData.message || "Failed to reprocess documents"
+            );
+          }
+
+          const result = await response.json();
+          showToast(result.message, "success");
+        } catch (error) {
+          console.error("Error reprocessing documents:", error);
+          showToast(error.message || "Failed to reprocess documents", "error");
+        } finally {
+          loadingOverlay.classList.add("hidden");
+        }
+      });
+
+      // Initial load
+      fetchDocuments();
+    </script>
+  </body>
+</html>

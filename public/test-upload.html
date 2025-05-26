@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PDF Upload Test</title>
+  </head>
+  <body>
+    <h1>PDF Upload Test</h1>
+    <p>Use this simple form to test PDF uploads.</p>
+
+    <form id="upload-form" enctype="multipart/form-data">
+      <div>
+        <label for="title">Document Title:</label>
+        <input type="text" id="title" name="title" required />
+      </div>
+      <div style="margin-top: 20px">
+        <label for="file">PDF File:</label>
+        <input
+          type="file"
+          id="file"
+          name="file"
+          accept="application/pdf"
+          required
+        />
+      </div>
+      <div style="margin-top: 20px">
+        <button type="submit">Upload PDF</button>
+      </div>
+    </form>
+
+    <div id="result" style="margin-top: 30px"></div>
+
+    <script>
+      document
+        .getElementById("upload-form")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const resultDiv = document.getElementById("result");
+          resultDiv.innerHTML = "Uploading...";
+
+          const formData = new FormData();
+          const titleInput = document.getElementById("title");
+          const fileInput = document.getElementById("file");
+
+          formData.append("title", titleInput.value);
+          formData.append("file", fileInput.files[0]);
+
+          try {
+            const response = await fetch("/api/documents", {
+              method: "POST",
+              body: formData,
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+              resultDiv.innerHTML = `
+                        <div style="color: green;">
+                            <h3>Upload Successful!</h3>
+                            <p>Document ID: ${result.document.id}</p>
+                            <p>Title: ${result.document.title}</p>
+                            <p>Filename: ${result.document.filename}</p>
+                            <p>Pages: ${
+                              result.document.metadata?.pageCount || "N/A"
+                            }</p>
+                        </div>
+                    `;
+            } else {
+              resultDiv.innerHTML = `
+                        <div style="color: red;">
+                            <h3>Upload Failed</h3>
+                            <p>${result.message || "Unknown error"}</p>
+                        </div>
+                    `;
+            }
+          } catch (error) {
+            resultDiv.innerHTML = `
+                    <div style="color: red;">
+                        <h3>Error</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+          }
+        });
+    </script>
+  </body>
+</html>
