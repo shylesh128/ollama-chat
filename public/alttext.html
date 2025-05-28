@@ -3,96 +3,35 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Alt Text Generator - Gemma 3</title>
-    <link rel="stylesheet" href="css/styles.css" />
+    <title>Alt Text Generator - ansrAccess</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link href="/css/style.css" rel="stylesheet" />
     <style>
-      .container {
-        max-width: 900px;
-        margin: 0 auto;
-        padding: 20px;
-      }
-
-      .card {
-        background-color: #fff;
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        padding: 20px;
-        margin-bottom: 20px;
-      }
-
       .upload-area {
-        border: 2px dashed #ccc;
-        border-radius: 8px;
-        padding: 40px;
-        text-align: center;
-        margin-bottom: 20px;
+        border: 2px dashed #e5e7eb;
         transition: all 0.3s;
-        cursor: pointer;
       }
-
       .upload-area:hover,
       .upload-area.dragover {
-        border-color: #7c3aed;
-        background-color: rgba(124, 58, 237, 0.05);
+        border-color: #3b82f6;
+        background-color: rgba(59, 130, 246, 0.05);
       }
-
-      .upload-area i {
-        font-size: 48px;
-        color: #7c3aed;
-        margin-bottom: 10px;
-      }
-
-      .preview-container {
-        display: none;
-        margin-top: 20px;
-      }
-
-      .image-preview {
-        max-width: 100%;
-        max-height: 300px;
-        margin-bottom: 20px;
-        border-radius: 8px;
-      }
-
-      .result-container {
-        display: none;
-        background-color: #f9fafb;
-        border-radius: 8px;
-        padding: 20px;
-        margin-top: 20px;
-      }
-
-      .btn {
-        background-color: #7c3aed;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 16px;
-        transition: background-color 0.3s;
-      }
-
-      .btn:hover {
-        background-color: #6d28d9;
-      }
-
-      .btn:disabled {
-        background-color: #c4b5fd;
-        cursor: not-allowed;
-      }
-
       .loader {
-        display: none;
         border: 4px solid #f3f3f3;
-        border-top: 4px solid #7c3aed;
+        border-top: 4px solid #3b82f6;
         border-radius: 50%;
         width: 30px;
         height: 30px;
         animation: spin 1s linear infinite;
         margin: 20px auto;
       }
-
       @keyframes spin {
         0% {
           transform: rotate(0deg);
@@ -101,141 +40,106 @@
           transform: rotate(360deg);
         }
       }
-
-      .copy-btn {
-        background-color: #e5e7eb;
-        color: #374151;
-        border: none;
-        padding: 5px 10px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 14px;
-        margin-left: 10px;
-        transition: background-color 0.3s;
-      }
-
-      .copy-btn:hover {
-        background-color: #d1d5db;
-      }
-
-      .alert {
-        padding: 10px;
-        border-radius: 4px;
-        margin-bottom: 20px;
-        display: none;
-      }
-
-      .alert-success {
-        background-color: #d1fae5;
-        color: #065f46;
-        border: 1px solid #a7f3d0;
-      }
-
-      .alert-error {
-        background-color: #fee2e2;
-        color: #b91c1c;
-        border: 1px solid #fecaca;
-      }
-
-      .model-info {
-        margin-top: 20px;
-        font-size: 14px;
-        color: #6b7280;
-        display: flex;
-        align-items: center;
-      }
-
-      .model-badge {
-        background-color: #e5e7eb;
-        padding: 4px 8px;
-        border-radius: 4px;
-        margin-left: 8px;
-        font-weight: 500;
-        color: #374151;
-      }
-
-      .model-badge.ai {
-        background-color: #dbeafe;
-        color: #1e40af;
-      }
-
-      .model-badge.fallback {
-        background-color: #fef3c7;
-        color: #92400e;
-      }
     </style>
   </head>
-  <body>
-    <div class="container">
-      <h1>Alt Text Generator</h1>
-      <p>
-        Upload an image to generate an accurate alt text description using Gemma
-        3 AI model
-      </p>
+  <body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto max-w-4xl p-4">
+      <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold">Alt Text Generator</h1>
+        <a href="/" class="text-blue-600 hover:text-blue-800">
+          <i class="fas fa-arrow-left mr-2"></i> Back to Chat
+        </a>
+      </div>
 
-      <div class="alert alert-success" id="successAlert"></div>
-      <div class="alert alert-error" id="errorAlert"></div>
+      <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <p class="text-gray-600 mb-6">
+          Upload an image to generate an accurate alt text description using AI.
+        </p>
 
-      <div class="card">
-        <div class="upload-area" id="uploadArea">
-          <i class="fas fa-cloud-upload-alt"></i>
-          <h3>Drag & Drop Image Here</h3>
-          <p>or</p>
-          <input
-            type="file"
-            id="fileInput"
-            style="display: none"
-            accept="image/*"
-          />
-          <button class="btn" id="browseBtn">Browse Files</button>
-        </div>
+        <div
+          id="successAlert"
+          class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 hidden"
+        ></div>
+        <div
+          id="errorAlert"
+          class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 hidden"
+        ></div>
 
-        <div class="preview-container" id="previewContainer">
-          <img
-            class="image-preview"
-            id="imagePreview"
-            alt="Preview of uploaded image"
-          />
-          <button class="btn" id="generateBtn">Generate Alt Text</button>
+        <div
+          id="uploadArea"
+          class="upload-area rounded-lg p-10 text-center cursor-pointer"
+        >
+          <i class="fas fa-cloud-upload-alt text-4xl text-blue-600 mb-3"></i>
+          <h3 class="text-lg font-semibold mb-2">Drag & Drop Image Here</h3>
+          <p class="text-gray-500 mb-3">or</p>
+          <input type="file" id="fileInput" class="hidden" accept="image/*" />
           <button
-            class="btn"
-            id="resetBtn"
-            style="background-color: #e5e7eb; color: #374151; margin-left: 10px"
+            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            id="browseBtn"
           >
-            Reset
+            Browse Files
           </button>
-          <div class="loader" id="loader"></div>
         </div>
 
-        <div class="result-container" id="resultContainer">
-          <h3>Generated Alt Text:</h3>
-          <div
-            id="altTextResult"
-            style="
-              margin-bottom: 20px;
-              padding: 15px;
-              background-color: white;
-              border-radius: 4px;
-              border: 1px solid #e5e7eb;
-            "
-          ></div>
-          <div class="model-info" id="modelInfo">
-            Generated by:
-            <span class="model-badge ai" id="modelBadge">gemma3:vision</span>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          <div id="previewContainer" class="hidden">
+            <h3 class="text-lg font-semibold mb-3">Image Preview</h3>
+            <img
+              id="imagePreview"
+              class="max-w-full rounded-lg border border-gray-200 mb-4"
+              alt="Preview of uploaded image"
+            />
+            <div class="flex space-x-3">
+              <button
+                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                id="generateBtn"
+              >
+                Generate Alt Text
+              </button>
+              <button
+                class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded"
+                id="resetBtn"
+              >
+                Reset
+              </button>
+            </div>
+            <div id="loader" class="loader hidden mt-4"></div>
           </div>
-          <div style="margin-top: 20px">
-            <button class="btn" id="copyBtn">Copy Alt Text</button>
-            <button
-              class="btn"
-              id="regenerateBtn"
-              style="
-                background-color: #e5e7eb;
-                color: #374151;
-                margin-left: 10px;
-              "
+
+          <div id="resultContainer" class="hidden">
+            <h3 class="text-lg font-semibold mb-3">Generated Alt Text</h3>
+            <div
+              id="altTextResult"
+              class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4 min-h-[100px]"
+            ></div>
+
+            <div
+              class="flex items-center text-sm text-gray-600 mb-4"
+              id="modelInfo"
             >
-              Upload New Image
-            </button>
+              Generated by:
+              <span
+                id="modelBadge"
+                class="ml-2 bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium"
+              >
+                gemma3
+              </span>
+            </div>
+
+            <div class="flex space-x-3">
+              <button
+                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                id="copyBtn"
+              >
+                <i class="far fa-copy mr-2"></i>Copy Alt Text
+              </button>
+              <button
+                class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded"
+                id="regenerateBtn"
+              >
+                Upload New Image
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -327,9 +231,8 @@
 
           reader.onload = (e) => {
             imagePreview.src = e.target.result;
-            uploadArea.style.display = "none";
-            previewContainer.style.display = "block";
-            resultContainer.style.display = "none";
+            previewContainer.classList.remove("hidden");
+            resultContainer.classList.add("hidden");
           };
 
           reader.readAsDataURL(uploadedFile);
@@ -347,8 +250,9 @@
           formData.append("image", uploadedFile);
 
           // Show loader and disable button
-          loader.style.display = "block";
+          loader.classList.remove("hidden");
           generateBtn.disabled = true;
+          generateBtn.classList.add("opacity-50");
 
           try {
             const response = await fetch("/api/alttext", {
@@ -374,25 +278,28 @@
 
                 // Check if this is a fallback response
                 if (data.data.altText.includes("simulated alt text")) {
-                  modelBadge.classList.remove("ai");
-                  modelBadge.classList.add("fallback");
+                  modelBadge.classList.remove("bg-blue-100", "text-blue-800");
+                  modelBadge.classList.add("bg-yellow-100", "text-yellow-800");
                   modelBadge.textContent = "fallback (simulation)";
                 } else {
-                  modelBadge.classList.add("ai");
-                  modelBadge.classList.remove("fallback");
+                  modelBadge.classList.add("bg-blue-100", "text-blue-800");
+                  modelBadge.classList.remove(
+                    "bg-yellow-100",
+                    "text-yellow-800"
+                  );
                 }
               }
 
-              previewContainer.style.display = "none";
-              resultContainer.style.display = "block";
+              resultContainer.classList.remove("hidden");
             } else {
               throw new Error(data.message || "Failed to generate alt text");
             }
           } catch (error) {
             showError(error.message);
-            generateBtn.disabled = false;
           } finally {
-            loader.style.display = "none";
+            loader.classList.add("hidden");
+            generateBtn.disabled = false;
+            generateBtn.classList.remove("opacity-50");
           }
         });
 
@@ -418,37 +325,32 @@
         function resetUpload() {
           uploadedFile = null;
           fileInput.value = "";
-          uploadArea.style.display = "block";
-          previewContainer.style.display = "none";
-          resultContainer.style.display = "none";
+          previewContainer.classList.add("hidden");
+          resultContainer.classList.add("hidden");
           generateBtn.disabled = false;
+          generateBtn.classList.remove("opacity-50");
         }
 
         function showError(message) {
           errorAlert.textContent = message;
-          errorAlert.style.display = "block";
-          successAlert.style.display = "none";
+          errorAlert.classList.remove("hidden");
+          successAlert.classList.add("hidden");
 
           setTimeout(() => {
-            errorAlert.style.display = "none";
+            errorAlert.classList.add("hidden");
           }, 5000);
         }
 
         function showSuccess(message) {
           successAlert.textContent = message;
-          successAlert.style.display = "block";
-          errorAlert.style.display = "none";
+          successAlert.classList.remove("hidden");
+          errorAlert.classList.add("hidden");
 
           setTimeout(() => {
-            successAlert.style.display = "none";
+            successAlert.classList.add("hidden");
           }, 3000);
         }
       });
     </script>
-    <!-- Font Awesome for icons -->
-    <script
-      src="https://kit.fontawesome.com/a076d05399.js"
-      crossorigin="anonymous"
-    ></script>
   </body>
 </html>
