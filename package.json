@@ -12,7 +12,7 @@
   },
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "This guide explains how to set up and run the Ollama REST API project using Docker for both development and production environments. It also covers how to install and use the Ollama LLM service (llama3:2b model).",
   "type": "module",
   "dependencies": {
     "@elastic/elasticsearch": "^9.0.2",
@@ -20,6 +20,7 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "hnswlib-node": "^3.0.0",
+    "jimp": "^1.6.0",
     "mongodb-memory-server": "^10.1.4",
     "mongoose": "^8.3.2",
     "morgan": "^1.10.0",
@@ -37,5 +38,9 @@
   },
   "jest": {
     "testEnvironment": "node"
-  }
+  },
+  "directories": {
+    "test": "tests"
+  },
+  "keywords": []
 }

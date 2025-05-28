@@ -3,6 +3,7 @@ import morgan from "morgan";
 import chatRoutes from "./routes/chat.routes.js";
 import documentRoutes from "./routes/document.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
+import altTextRoutes from "./routes/alttext.routes.js";
 import { swaggerUi, swaggerSpec } from "./swagger.js";
 import errorController from "./controllers/error.controller.js";
 import path from "path";
@@ -39,6 +40,11 @@ app.get("/diagnostics", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "diagnostics.html"));
 });
 
+// Alt Text Generator route
+app.get("/alttext", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "alttext.html"));
+});
+
 // Swagger API docs
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
@@ -46,6 +52,7 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use("/api", chatRoutes);
 app.use("/api/documents", documentRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/alttext", altTextRoutes);
 
 // Global error handler
 app.use(errorController);

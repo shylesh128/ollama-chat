@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Alt Text Generator - Gemma 3</title>
+    <link rel="stylesheet" href="css/styles.css" />
+    <style>
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      .card {
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+
+      .upload-area {
+        border: 2px dashed #ccc;
+        border-radius: 8px;
+        padding: 40px;
+        text-align: center;
+        margin-bottom: 20px;
+        transition: all 0.3s;
+        cursor: pointer;
+      }
+
+      .upload-area:hover,
+      .upload-area.dragover {
+        border-color: #7c3aed;
+        background-color: rgba(124, 58, 237, 0.05);
+      }
+
+      .upload-area i {
+        font-size: 48px;
+        color: #7c3aed;
+        margin-bottom: 10px;
+      }
+
+      .preview-container {
+        display: none;
+        margin-top: 20px;
+      }
+
+      .image-preview {
+        max-width: 100%;
+        max-height: 300px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+      }
+
+      .result-container {
+        display: none;
+        background-color: #f9fafb;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 20px;
+      }
+
+      .btn {
+        background-color: #7c3aed;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s;
+      }
+
+      .btn:hover {
+        background-color: #6d28d9;
+      }
+
+      .btn:disabled {
+        background-color: #c4b5fd;
+        cursor: not-allowed;
+      }
+
+      .loader {
+        display: none;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #7c3aed;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        animation: spin 1s linear infinite;
+        margin: 20px auto;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .copy-btn {
+        background-color: #e5e7eb;
+        color: #374151;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-left: 10px;
+        transition: background-color 0.3s;
+      }
+
+      .copy-btn:hover {
+        background-color: #d1d5db;
+      }
+
+      .alert {
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+        display: none;
+      }
+
+      .alert-success {
+        background-color: #d1fae5;
+        color: #065f46;
+        border: 1px solid #a7f3d0;
+      }
+
+      .alert-error {
+        background-color: #fee2e2;
+        color: #b91c1c;
+        border: 1px solid #fecaca;
+      }
+
+      .model-info {
+        margin-top: 20px;
+        font-size: 14px;
+        color: #6b7280;
+        display: flex;
+        align-items: center;
+      }
+
+      .model-badge {
+        background-color: #e5e7eb;
+        padding: 4px 8px;
+        border-radius: 4px;
+        margin-left: 8px;
+        font-weight: 500;
+        color: #374151;
+      }
+
+      .model-badge.ai {
+        background-color: #dbeafe;
+        color: #1e40af;
+      }
+
+      .model-badge.fallback {
+        background-color: #fef3c7;
+        color: #92400e;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Alt Text Generator</h1>
+      <p>
+        Upload an image to generate an accurate alt text description using Gemma
+        3 AI model
+      </p>
+
+      <div class="alert alert-success" id="successAlert"></div>
+      <div class="alert alert-error" id="errorAlert"></div>
+
+      <div class="card">
+        <div class="upload-area" id="uploadArea">
+          <i class="fas fa-cloud-upload-alt"></i>
+          <h3>Drag & Drop Image Here</h3>
+          <p>or</p>
+          <input
+            type="file"
+            id="fileInput"
+            style="display: none"
+            accept="image/*"
+          />
+          <button class="btn" id="browseBtn">Browse Files</button>
+        </div>
+
+        <div class="preview-container" id="previewContainer">
+          <img
+            class="image-preview"
+            id="imagePreview"
+            alt="Preview of uploaded image"
+          />
+          <button class="btn" id="generateBtn">Generate Alt Text</button>
+          <button
+            class="btn"
+            id="resetBtn"
+            style="background-color: #e5e7eb; color: #374151; margin-left: 10px"
+          >
+            Reset
+          </button>
+          <div class="loader" id="loader"></div>
+        </div>
+
+        <div class="result-container" id="resultContainer">
+          <h3>Generated Alt Text:</h3>
+          <div
+            id="altTextResult"
+            style="
+              margin-bottom: 20px;
+              padding: 15px;
+              background-color: white;
+              border-radius: 4px;
+              border: 1px solid #e5e7eb;
+            "
+          ></div>
+          <div class="model-info" id="modelInfo">
+            Generated by:
+            <span class="model-badge ai" id="modelBadge">gemma3:vision</span>
+          </div>
+          <div style="margin-top: 20px">
+            <button class="btn" id="copyBtn">Copy Alt Text</button>
+            <button
+              class="btn"
+              id="regenerateBtn"
+              style="
+                background-color: #e5e7eb;
+                color: #374151;
+                margin-left: 10px;
+              "
+            >
+              Upload New Image
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const uploadArea = document.getElementById("uploadArea");
+        const fileInput = document.getElementById("fileInput");
+        const browseBtn = document.getElementById("browseBtn");
+        const previewContainer = document.getElementById("previewContainer");
+        const imagePreview = document.getElementById("imagePreview");
+        const generateBtn = document.getElementById("generateBtn");
+        const resetBtn = document.getElementById("resetBtn");
+        const resultContainer = document.getElementById("resultContainer");
+        const altTextResult = document.getElementById("altTextResult");
+        const copyBtn = document.getElementById("copyBtn");
+        const regenerateBtn = document.getElementById("regenerateBtn");
+        const loader = document.getElementById("loader");
+        const successAlert = document.getElementById("successAlert");
+        const errorAlert = document.getElementById("errorAlert");
+        const modelBadge = document.getElementById("modelBadge");
+
+        let uploadedFile = null;
+
+        // Event listeners for drag and drop
+        ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
+          uploadArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+
+        ["dragenter", "dragover"].forEach((eventName) => {
+          uploadArea.addEventListener(
+            eventName,
+            () => {
+              uploadArea.classList.add("dragover");
+            },
+            false
+          );
+        });
+
+        ["dragleave", "drop"].forEach((eventName) => {
+          uploadArea.addEventListener(
+            eventName,
+            () => {
+              uploadArea.classList.remove("dragover");
+            },
+            false
+          );
+        });
+
+        uploadArea.addEventListener("drop", handleDrop, false);
+
+        function handleDrop(e) {
+          const dt = e.dataTransfer;
+          const files = dt.files;
+
+          if (files.length) {
+            handleFiles(files);
+          }
+        }
+
+        // Browse button click
+        browseBtn.addEventListener("click", () => {
+          fileInput.click();
+        });
+
+        // File input change
+        fileInput.addEventListener("change", (e) => {
+          if (e.target.files.length) {
+            handleFiles(e.target.files);
+          }
+        });
+
+        // Handle the files selected
+        function handleFiles(files) {
+          uploadedFile = files[0];
+
+          if (!uploadedFile.type.match("image.*")) {
+            showError("Please upload an image file (JPEG, PNG, GIF, etc.)");
+            return;
+          }
+
+          const reader = new FileReader();
+
+          reader.onload = (e) => {
+            imagePreview.src = e.target.result;
+            uploadArea.style.display = "none";
+            previewContainer.style.display = "block";
+            resultContainer.style.display = "none";
+          };
+
+          reader.readAsDataURL(uploadedFile);
+        }
+
+        // Generate alt text
+        generateBtn.addEventListener("click", async () => {
+          if (!uploadedFile) {
+            showError("Please upload an image first");
+            return;
+          }
+
+          // Prepare form data
+          const formData = new FormData();
+          formData.append("image", uploadedFile);
+
+          // Show loader and disable button
+          loader.style.display = "block";
+          generateBtn.disabled = true;
+
+          try {
+            const response = await fetch("/api/alttext", {
+              method: "POST",
+              body: formData,
+            });
+
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(
+                errorData.message || "Failed to generate alt text"
+              );
+            }
+
+            const data = await response.json();
+
+            if (data.success) {
+              altTextResult.textContent = data.data.altText;
+
+              // Update model badge
+              if (data.data.model) {
+                modelBadge.textContent = data.data.model;
+
+                // Check if this is a fallback response
+                if (data.data.altText.includes("simulated alt text")) {
+                  modelBadge.classList.remove("ai");
+                  modelBadge.classList.add("fallback");
+                  modelBadge.textContent = "fallback (simulation)";
+                } else {
+                  modelBadge.classList.add("ai");
+                  modelBadge.classList.remove("fallback");
+                }
+              }
+
+              previewContainer.style.display = "none";
+              resultContainer.style.display = "block";
+            } else {
+              throw new Error(data.message || "Failed to generate alt text");
+            }
+          } catch (error) {
+            showError(error.message);
+            generateBtn.disabled = false;
+          } finally {
+            loader.style.display = "none";
+          }
+        });
+
+        // Copy alt text
+        copyBtn.addEventListener("click", () => {
+          const altText = altTextResult.textContent;
+          navigator.clipboard
+            .writeText(altText)
+            .then(() => {
+              showSuccess("Alt text copied to clipboard!");
+            })
+            .catch((err) => {
+              showError("Failed to copy text: " + err);
+            });
+        });
+
+        // Reset button
+        resetBtn.addEventListener("click", resetUpload);
+
+        // Regenerate button
+        regenerateBtn.addEventListener("click", resetUpload);
+
+        function resetUpload() {
+          uploadedFile = null;
+          fileInput.value = "";
+          uploadArea.style.display = "block";
+          previewContainer.style.display = "none";
+          resultContainer.style.display = "none";
+          generateBtn.disabled = false;
+        }
+
+        function showError(message) {
+          errorAlert.textContent = message;
+          errorAlert.style.display = "block";
+          successAlert.style.display = "none";
+
+          setTimeout(() => {
+            errorAlert.style.display = "none";
+          }, 5000);
+        }
+
+        function showSuccess(message) {
+          successAlert.textContent = message;
+          successAlert.style.display = "block";
+          errorAlert.style.display = "none";
+
+          setTimeout(() => {
+            successAlert.style.display = "none";
+          }, 3000);
+        }
+      });
+    </script>
+    <!-- Font Awesome for icons -->
+    <script
+      src="https://kit.fontawesome.com/a076d05399.js"
+      crossorigin="anonymous"
+    ></script>
+  </body>
+</html>

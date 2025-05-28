@@ -15,6 +15,24 @@ const swaggerDefinition = {
       description: "Development server",
     },
   ],
+  tags: [
+    {
+      name: "Chat",
+      description: "API endpoints for chat interactions",
+    },
+    {
+      name: "Documents",
+      description: "API endpoints for document management",
+    },
+    {
+      name: "Admin",
+      description: "API endpoints for administrative functions",
+    },
+    {
+      name: "Alt Text",
+      description: "API endpoints for image alt text generation using Gemma 3",
+    },
+  ],
 };
 
 const options = {
