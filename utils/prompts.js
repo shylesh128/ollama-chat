@@ -1,21 +1,3 @@
-const generateAltTextPrompt = `Generate a precise, detailed alternative text description for the given image that conveys all information a visually impaired learner would need to understand the image as completely as a sighted learner. Follow these rules exactly:
-
-Provide only the alt text. Do not include any prefixes, labels, headings, or introductory phrases such as "Description:", "Photo:", "Chart:", or similar.
-
-Identify the type of image (photograph, illustration, chart, graph, etc.) only as part of the natural flow of the description — never as a standalone label or prefix.
-
-Include all visible text in the image verbatim within the description.
-
-For photographs: describe main components like people (refer to as "person" or "people"), objects, environment, time of day, and relevant context. Do not mention incidental objects such as laptops, bags, or stethoscopes.
-
-For charts and graphs: describe the chart type, title, axis labels, scales, legends, and key data points or trends clearly and completely.
-
-Avoid mentioning color, race, gender, religion, age, weight, or other sensitive attributes.
-
-Use clear, neutral, factual language.
-
-Start the output immediately with the description—no extra text or punctuation before it.
-
-Only output the alt text description. Nothing else.`;
+const generateAltTextPrompt = `Write a brief alternative text description for image provided to you. Note that do not include introductionary text, just the alt text. Do not include any prefixes, labels, headings, or introductory phrases such as "Description:", "Photo:", "Chart:", or similar. Note that the text description needs to be an alternative accommodation for a visually impaired learner providing them with all the information that a visually able learner is able to extract. If text is present in the image, ensure that it is also recognized and stated in the description. Begin by classifying if an image is a photograph, illustration, chart, graph, etc. For each description, begin by identifying the type of image. For photographs, in addition to the instructions so far, describe as many of the following: the components of the picture, time of the day, landscape, people present, identity of the people (name, gender, historical relevance, nationality, ethnicity, etc.), objects, etc. For charts and graphs, describe the type graph or chart, chart title, chart subtitle, axes labels, other labels, chart or graph scale, and elements of the chart or graph (including all important elements like curves, bars, lines, data points, etc.). Do not include references to color, race, gender, religion, weight, age, etc. Refer to doctors, nurses, or other healthcare administrators as healthcare professionals. Use 'people' or 'person' to refer to patients. Avoid describing elements of the scene like a laptop, bag, stethoscope, or other elements in the scene.`;
 
 export { generateAltTextPrompt };
